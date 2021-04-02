@@ -3,7 +3,7 @@
 # ➭ Dependencies:
 > ▪ Skript ➥ https://github.com/SkriptLang/Skript/releases
 
-> ▪ Skript for 1.8.8-1.12 https://github.com/SkriptLang/Skript/releases/tag/dev36
+> ▪ Skript for 1.8.8 https://github.com/Matocolotoe/Skript-1.8/releases/tag/2.5
 ***
 > ▪ TitleManager ➥ https://www.spigotmc.org/resources/titlemanager.1049/
 ***
