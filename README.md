@@ -1,16 +1,18 @@
 # ➭ Duels Minigame for Minecraft.
 
-# ➭ Dependencies:
+# ➭ Dependencies for Latest version:
+***
 > ▪ Skript ➥ https://github.com/SkriptLang/Skript/releases
-> 
 > ▪ Fast Async WorldEdit ➥ https://www.spigotmc.org/resources/fast-async-worldedit.13932/
-
-> ▪ Skript for 1.8.8 ➥ https://github.com/Matocolotoe/Skript-1.8/releases/tag/2.5
-> 
-> ▪ Fast Async WorldEdit for 1.8.8 ➥ https://ci.athion.net/job/FastAsyncWorldEdit/
-***
 > ▪ TitleManager ➥ https://www.spigotmc.org/resources/titlemanager.1049/
+> ▪ LeafSK ➥ https://github.com/andrei923/LeafSK/releases
 ***
+
+# ➭ Dependencies for 1.8.8:
+***
+> ▪ Skript for 1.8.8 ➥ https://github.com/Matocolotoe/Skript-1.8/releases/tag/2.5
+> ▪ Fast Async WorldEdit for 1.8.8 ➥ https://ci.athion.net/job/FastAsyncWorldEdit/
+> ▪ TitleManager ➥ https://www.spigotmc.org/resources/titlemanager.1049/
 > ▪ LeafSK ➥ https://github.com/andrei923/LeafSK/releases
 ***
 
