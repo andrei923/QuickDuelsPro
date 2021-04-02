@@ -1,6 +1,6 @@
 # ➭ Duels Minigame for Minecraft.
 
-# ➭ Dependencies for Latest version:
+## ➭ Dependencies for Latest version:
 ***
 > ▪ Skript ➥ https://github.com/SkriptLang/Skript/releases
 
@@ -11,7 +11,7 @@
 > ▪ LeafSK ➥ https://github.com/andrei923/LeafSK/releases
 ***
 
-# ➭ Dependencies for 1.8.8:
+## ➭ Dependencies for 1.8.8:
 ***
 > ▪ Skript for 1.8.8 ➥ https://github.com/Matocolotoe/Skript-1.8/releases/tag/2.5
 
