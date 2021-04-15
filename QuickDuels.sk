@@ -19,25 +19,6 @@ options:
 	#do not touch this -_-
 	plugin-version: 1.0.0
 
-
-local effect create scoreboard for %player%:	
-	trigger:
-		if {-duels::cache::TitleManager}.hasScoreboard(expr-1) is true:
-			{-duels::cache::TitleManager}.removeScoreboard(expr-1)
-		{-duels::cache::TitleManager}.giveScoreboard(expr-1)
-
-local effect delete scoreboard of %player%:	
-	trigger:
-		{-duels::cache::TitleManager}.removeScoreboard(expr-1)	
-
-local effect set scoreboard title of %player% to %string%:	
-	trigger:
-		{-duels::cache::TitleManager}.setScoreboardTitle(expr-1 and expr-2)
-
-local effect set scoreboard line %number% of %player% to %string%:	
-	trigger:
-		{-duels::cache::TitleManager}.setScoreboardValue(expr-2, expr-1 and expr-3)
-
 function check_yaml(dir: text, value: text, set: text, type: text = "TEXT"):
 	yaml value {_value} from "leaf.duels.%{_dir}%" is not set:
 		if {_type} is "text":
@@ -60,16 +41,6 @@ expression %item% with [custom] nbt %string%:
 		{_nbti}.mergeCompound(new NBTContainer(expr-2))
 		return {_nbti}.getItem()
 		
-expression %item% with [leaf] lore %texts%:
-	return type: item
-	get:
-		set {_r} to expr-1
-		loop expressions 2:
-			set {_lore} to loop-value-1
-			add 1 to {_line}			
-			set line {_line} of lore of {_r} to colored {_lore}		
-		return {_r}
-
 #From https://forums.skunity.com/resources/mirrorutils.706/ by EWS
 local expression replacer %texts% with %texts% in %text%:
 	return type: text
@@ -99,14 +70,14 @@ command duels [<text = help>] [<text>] [<text>] [<number>]:
 			send "&a/duels leave"
 			send centered "&7☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁" to player
 			if player has permission "duels.admin":	
-				send centered "&7☁☁☁☁☁☁ &e&nGeneral Setup&r ☁☁☁☁☁☁" to player		
+				send centered "&7☁☁☁☁☁☁ &e&nGeneral Setup&r &7☁☁☁☁☁☁" to player		
 				send "&e/duels saveKit &8(&7kit_name&8)"													
 				send "&e/duels setLobby"	
 				send "&e/duels setKitEdit"								
-				send centered "&7☁☁☁☁☁☁ &e&nMap Setup&r ☁☁☁☁☁☁" to player					
+				send centered "&7☁☁☁☁☁☁ &e&nMap Setup&r &7☁☁☁☁☁☁" to player					
 				send "&e/duels createMap &8(&7map_name&8)"								
 				send "&e/duels setPos &8(&7map_name&8) &8(&a1&7/&a2&8) "							
-				send "&e/duels setSpawn &8(&7map_name&8) &8(&7&cRed|&bBlue8)"		
+				send "&e/duels setSpawn &8(&7map_name&8) &8(&7&cRed|&bBlue&8)"		
 				send "&e/duels saveMap &8(&7map_name&8)"							
 				send "&e/duels deleteMap &8(&7map_name&8)"
 				send centered "&7☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁☁" to player
@@ -136,7 +107,7 @@ command duels [<text = help>] [<text>] [<text>] [<number>]:
 							set {_display} to {-duels::cache::kits::%{_mode}%::display}					
 					else:
 						set {_display} to {-duels::cache::kits::%{_mode}%::display}
-					make a gui slot yaml value "Kits.%{_mode}%.Display.Slot" from "leaf.duels.kits" of player with {_display} with leaf lore {_lore::*} to run:
+					make a gui slot yaml value "Kits.%{_mode}%.Display.Slot" from "leaf.duels.kits" of player with {_display} with lore colored {_lore::*} to run:
 						close player's inventory
 						duels_join_queque(player, {_teamSize}, {_mode})
 				if {-duels::cache::player::%player%::queque} is set:
@@ -151,7 +122,7 @@ command duels [<text = help>] [<text>] [<text>] [<number>]:
 				loop "PlayedGames", "Wins", "Kills", "Loses", "BlocksDestroyed" and "BlocksPlaced":
 					set {_int} to yaml value "Stats.%loop-value-1%" from "leaf.duels.playerdata.%uuid of player%"
 					replace all "{%loop-value-1%}" with "%{_int}%" in {_lore::*}
-				make a gui slot 4 of player with paper named yaml value "Menus.Stats.Name" from "leaf.duels.config" with leaf lore {_lore::*} to do nothing				
+				make a gui slot 4 of player with paper named yaml value "Menus.Stats.Name" from "leaf.duels.config" with lore colored {_lore::*} to do nothing				
 		if arg-1 is "Kit":
 			if {-duels::cache::player::%player%::state} is not set:	
 				if arg-2 is "edit":
@@ -407,13 +378,33 @@ function duels_leave(p: player):
 		duels_inventory_manager({_p}, "restore")
 	delete {-duels::cache::player::%{_p}%::*}		
 
+function duels_party_join(p: player, teamSize: number = 1, kit: string = "Quick"):
+	if {-core::cache::player::%{_p}%::party::leader} is {_p}:
+		loop {-core::cache::player::%{-core::cache::player::%{_p}%::party::leader}%::party::Members::*}:
+			if loop-value-1 is not {_p}:
+				if {-duels::cache::player::%loop-value-1%::state} is set:
+					duels_leave(loop-value-1)
+					wait a second
+				if {-duels::cache::player::%loop-value-1%::state} is not set:
+					duels_party_join(loop-value-1, {_teamSize}, {_kit})
+			wait a tick
+
 function duels_join_queque(p: player, teamSize: number = 1, kit: string = "Quick"):
 	if {-duels::cache::player::%{_p}%::state} is not set:
 		if {-duels::cache::player::%{_p}%::queque} is set:
 			send yaml value "Messages.AlreadySearching" from "leaf.duels.config" to {_p}
 			stop
 		send yaml value "Messages.SearchingOpponent" from "leaf.duels.config" to {_p}
-		set {-duels::cache::player::%{_p}%::queque} to {_teamSize}
+		#Party Support.
+		if {-core::cache::player::%{_p}%::party::leader} is {_p}:
+			if size of {-core::cache::player::%{-core::cache::player::%{_p}%::party::leader}%::party::Members::*} > 1:
+				set {-duels::cache::player::%{_p}%::queque} to size of {-core::cache::player::%{-core::cache::player::%{_p}%::party::leader}%::party::Members::*}
+				duels_party_join({_p}, {_teamSize}, {_kit})
+			else:
+				set {-duels::cache::player::%{_p}%::queque} to {_teamSize}
+			#
+		else:
+			set {-duels::cache::player::%{_p}%::queque} to {_teamSize}
 		add {_p} to {-duels::cache::queque::%{_teamSize}%::%{_kit}%::*}
 		while {-duels::cache::player::%{_p}%::queque} is set:
 			if size of {-duels::cache::queque::%{_teamSize}%::%{_kit}%::*} = {_teamSize}*2:
@@ -496,6 +487,14 @@ function duels_clear_player(p: player):
 	loop ...{_p}.getActivePotionEffects():
 		{_p}.removePotionEffect(loop-value.getType())	
 	set velocity of {_p} to new vector 0, 0, 0	
+	#
+	set {_p}'s helmet to air	
+	set {_p}'s chestplate to air
+	set {_p}'s leggings to air
+	set {_p}'s boots to air		
+	set cursor slot of {_p} to air
+	close {_p}'s inventory
+	#	
 	delete metadata value "DUELS_DEAD" of {_p}
 	delete metadata value "DUELS_KILLER" of {_p}	
 
@@ -512,18 +511,6 @@ function duels_start(arena: text):
 		duels_stats(loop-value-1, "add", "PlayedGames")	
 		duels_tab_support(loop-value-1, "SetPrefix", yaml value "Settings.TeamFormat.Color.%{-duels::cache::player::%{_p}%::team}%" from "leaf.duels.config")
 		send replacer "{player}" and "{players-count}" with loop-value-1's display name and "%size of {-duels::cache::arena::%{_arena}%::ninjas::*}%" in yaml value "Messages.Join" from "leaf.duels.config" to {-duels::cache::arena::%{_arena}%::ninjas::*}		
-
-	#Separe players.
-	loop all players:	
-		loop {-duels::cache::arena::%{_arena}%::ninjas::*}:
-			if {-duels::cache::player::%loop-value-1%::arena} is {-duels::cache::player::%loop-value-2%::arena}:
-				leaf show loop-value-1 to loop-value-2
-				leaf show loop-value-2 to loop-value-1
-			else:
-				leaf hide loop-value-1 from loop-value-2
-				leaf hide loop-value-2 from loop-value-1
-		wait a tick		
-	#	
 	loop 4 times:	
 		loop {-duels::cache::arena::%{_arena}%::ninjas::*}:
 			set {_title} to ""
@@ -542,7 +529,18 @@ function duels_start(arena: text):
 				duels_play_sound(loop-value-2, "NOTE_BASS", "BLOCK_NOTE_BLOCK_BASS")			
 		#	loop-number != 2 or 3 or 4 or 5										
 			leaf send title {_title} with subtitle {_subtitle} to loop-value-2 with 5 fadein and 5 fadeout for 20
-		wait a second
+		wait a second	
+	#Separe players.
+	loop all players:	
+		loop {-duels::cache::arena::%{_arena}%::ninjas::*}:
+			if {-duels::cache::player::%loop-value-1%::arena} is {-duels::cache::player::%loop-value-2%::arena}:
+				leaf show loop-value-1 to loop-value-2
+				leaf show loop-value-2 to loop-value-1
+			else:
+				leaf hide loop-value-1 from loop-value-2
+				leaf hide loop-value-2 from loop-value-1
+		wait a tick		
+	#				
 
 on quit:
 	if {-duels::cache::player::%player%::state} is set:
@@ -785,7 +783,7 @@ function duels_reloadKits():
 	loop yaml nodes with keys "Kits" from "leaf.duels.kits":
 		if yaml value "Kits.%loop-value-1%.Display.Item" from "leaf.duels.kits" parsed as material is set:
 			set {-duels::cache::kits::%loop-value-1%::display} to yaml value "Kits.%loop-value-1%.Display.Item" from "leaf.duels.kits" parsed as material with custom nbt "{Unbreakable:1,HideFlags:4}"
-			set {-duels::cache::kits::%loop-value-1%::display} to {-duels::cache::kits::%loop-value-1%::display} with leaf lore yaml list "Kits.%loop-value-1%.Display.Lore" from "leaf.duels.kits"
+			set {-duels::cache::kits::%loop-value-1%::display} to {-duels::cache::kits::%loop-value-1%::display} with lore colored yaml list "Kits.%loop-value-1%.Display.Lore" from "leaf.duels.kits"
 			set name of {-duels::cache::kits::%loop-value-1%::display} to yaml value "Kits.%loop-value-1%.Display.Name" from "leaf.duels.kits"
 		else:
 			set {_i} to yaml value "Kits.%loop-value-1%.Display.Item" from "leaf.duels.kits"
@@ -818,7 +816,7 @@ on load:
 	check_yaml("config", "Menus.Play.Cancel.Slot", "44", "number")		
 	check_yaml("config", "Menus.Stats.Menu", "&8︼︼ &7QuickDuels Stats &8︼︼")		
 	check_yaml("config", "Menus.Stats.Name", "&8➭ &e&nYour Stats&r")	
-	check_yaml("config", "Menus.Stats.Lore", "||&8♦ &7PlayedGames &a{PlayedGames}||&8♦ &7Wins &a{Wins}||&8♦ &7Kills &a{Kills}||&8♦ &7Deaths &a{Deaths}||&8♦ &7BlocksPlaced &a{BlocksPlaced}||&8♦ &7BlocksDestroyed &a{BlocksDestroyed}", "list")			
+	check_yaml("config", "Menus.Stats.Lore", "||&8♦ &7PlayedGames &a{PlayedGames}||&8♦ &7Wins &a{Wins}||&8♦ &7Kills &a{Kills}||&8♦ &7Deaths &a{Loses}||&8♦ &7BlocksPlaced &a{BlocksPlaced}||&8♦ &7BlocksDestroyed &a{BlocksDestroyed}", "list")			
 	check_yaml("config", "Scoreboard.Game.Name", "&eQuick Duels") 	
 	check_yaml("config", "Scoreboard.Game.Lines", "&7{now}||||&7❒ &fTime Left ⤵||||&8➥ &a{game-time}||||&7❒ &fOpponent ⤵||||&7{Direction} &a{Opponent} &a{OpponentHealth}&c❤||||&7❒ &fMode ⤵||||&8➥ &a&7{mode}||||&eplay.my-cool-server.net", "list")		
 	check_yaml("config", "Messages.OpponentFound", "&a➜ &7Found Opponent.")		
@@ -837,7 +835,6 @@ on load:
 		if yaml value "%loop-value-1%.State" from "leaf.duels.maps" is "ready":
 			add loop-value-1 to {-duels::cache::maps::*}	
 	duels_reloadKits()		
-	set {-duels::cache::TitleManager} to Bukkit.getServer().getPluginManager().getPlugin("TitleManager")	
 	set {-duels::cache::Items::Cancel} to yaml value "Menus.Play.Cancel.Item" from "leaf.duels.config" parsed as material named yaml value "Menus.Play.Cancel.Name" from "leaf.duels.config"
 	set {-duels::cache::TabPlugin::TAB} to class "me.neznamy.tab.api.TABAPI"
 	set {-duels::cache::TabPlugin::TABEnumProperty} to class "me.neznamy.tab.api.EnumProperty"		
